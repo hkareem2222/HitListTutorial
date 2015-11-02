@@ -22,10 +22,20 @@ class ViewController: UIViewController, UITableViewDataSource {
         self.title = "\"This List\""
         self.tableView.registerClass(UITableViewCell.self, forCellReuseIdentifier: "Cell")
     }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let managedContext = appDelegate.managedObjectContext
+        let fetchRequest = NSFetchRequest(entityName: "Person")
+        
+        do {
+            let results = try managedContext.executeFetchRequest(fetchRequest)
+            self.people = results as! [NSManagedObject]
+        } catch let error as NSError {
+            print("Could not fetch \(error), \(error.userInfo)")
+        }
     }
 
     @IBAction func addName(sender: UIBarButtonItem) {
