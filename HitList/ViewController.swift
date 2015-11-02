@@ -8,11 +8,13 @@
 
 import UIKit
 
+import CoreData
+
 class ViewController: UIViewController, UITableViewDataSource {
 
     @IBOutlet weak var tableView: UITableView!
     
-    var names = [String]()
+    var people = [NSManagedObject]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -31,7 +33,7 @@ class ViewController: UIViewController, UITableViewDataSource {
         
         let saveAction = UIAlertAction(title: "Save", style: .Default) { (action: UIAlertAction) -> Void in
             let textField = alert.textFields!.first
-            self.names.append(textField!.text!)
+            self.saveName(textField!.text!)
             self.tableView.reloadData()
         }
         
@@ -49,14 +51,33 @@ class ViewController: UIViewController, UITableViewDataSource {
             completion: nil)
     }
     
+    func saveName(name: String) {
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let managedContext = appDelegate.managedObjectContext
+        let entity = NSEntityDescription.entityForName("Person", inManagedObjectContext: managedContext)
+        let person = NSManagedObject(entity: entity!, insertIntoManagedObjectContext: managedContext)
+        
+        person.setValue(name, forKey: "name")
+        
+        do {
+            try managedContext.save()
+            people.append(person)
+        } catch let error as NSError {
+            print("Could not save \(error), \(error.userInfo)")
+        }
+    }
+    
     // MARK: UITableViewDataSource
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return names.count
+        return people.count
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("Cell")
-        cell!.textLabel!.text = names[indexPath.row]
+        
+        let person = self.people[indexPath.row]
+        
+        cell!.textLabel!.text = person.valueForKey("name") as? String
         
         return cell!
     }
